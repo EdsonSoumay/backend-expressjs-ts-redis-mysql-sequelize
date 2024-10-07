@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 interface AuthenticatedRequest extends Request {
-    userId?: string;
+    user_id?: string;
 }
 
 const verifyToken = (req: AuthenticatedRequest, res: Response, next: NextFunction)=> {
@@ -19,7 +19,7 @@ const verifyToken = (req: AuthenticatedRequest, res: Response, next: NextFunctio
         if (err) {
             return res.status(403).json("Token is not valid!");
         }
-        req.userId = (data as JwtPayload)._id;
+        req.user_id = (data as JwtPayload)._id;
         next();
     });
 };

@@ -1,13 +1,15 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import connection from "../../config/dbConnect";
+import Category from './category'; // Import Category model
+import User from "./User";
 
-interface PostAttributes {
+export interface PostAttributes {
   id?: number,
   title: string,
   desc: string,
   photo: string | null,
-  username: string,
-  userId: bigint,
+  user_id: bigint,
+  category_id: bigint,
 
   createdAt?: Date,
   updatedAt? : Date
@@ -21,8 +23,8 @@ class Post extends Model<PostAttributes, PostInput> implements PostAttributes {
   public title!: string;
   public desc!: string;
   public photo!: string | null;
-  public username!: string;
-  public userId!: bigint;
+  public user_id!: bigint;
+  public category_id!: bigint;
 
   public readonly createdAt!: Date;
   public readonly updatedAt! : Date;
@@ -47,11 +49,11 @@ Post.init({
     type: DataTypes.STRING,
     allowNull: true
   },
-  username: {
-    type: DataTypes.STRING,
+  user_id: {
+    type: DataTypes.BIGINT,
     allowNull: false
   },
-  userId: {
+  category_id: {
     type: DataTypes.BIGINT,
     allowNull: false
   }
@@ -59,6 +61,16 @@ Post.init({
   timestamps: true,
   sequelize: connection,
   underscored: false
+});
+
+Post.belongsTo(Category, {
+  foreignKey: 'category_id', // Kolom foreign key
+  as: 'category' // Alias untuk relasi
+});
+
+Post.belongsTo(User, {
+  foreignKey: 'user_id', // Kolom foreign key
+  as: 'user' // Alias untuk relasi
 });
 
 export default Post;

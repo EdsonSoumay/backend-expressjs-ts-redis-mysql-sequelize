@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import { Op, col } from "sequelize";
-import Post from "../db/models/post";
-import Comment from "../db/models/comment";
-import fs from 'fs'
+import { createPostValidation, updatePostValidation } from "../validations/post.validation";
+import { createPostService, deletePostService, getPostByUserService, getPostService, getPostsService, updatePostService } from "../services/post.service";
 
 const getPosts = async (req: Request, res: Response): Promise<Response> => {
   const { search } = req.query;
@@ -12,7 +10,8 @@ const getPosts = async (req: Request, res: Response): Promise<Response> => {
   const isRedisClientOpen = redisClient.isOpen; // Periksa jika client Redis terbuka
 
   // Buat cache key yang unik berdasarkan parameter pencarian
-  const cacheKey = search ? `posts:search:${search}` : 'posts:all';
+  const searchStr = String(search || '').toLowerCase(); // Memastikan selalu string
+  const cacheKey = searchStr ? `posts:search:${searchStr}` : 'posts:all';
 
   try {
     if (isRedisClientOpen) {
@@ -27,25 +26,7 @@ const getPosts = async (req: Request, res: Response): Promise<Response> => {
     }
 
     // Jika tidak ada di Redis atau Redis tidak tersedia, fetch data dari database
-    let posts;
-    if (search) {
-      posts = await Post.findAll({
-        where: {
-          title: {
-            [Op.like]: `%${search}%`,
-          },
-        },
-        attributes: {
-          include: [[col('id'), '_id']],
-        },
-      });
-    } else {
-      posts = await Post.findAll({
-        attributes: {
-          include: [[col('id'), '_id']],
-        },
-      });
-    }
+    const posts = await getPostsService(search)
 
     if (isRedisClientOpen) {
       // Simpan data ke Redis untuk caching dengan TTL 300 detik (5 menit)
@@ -63,9 +44,14 @@ const getPosts = async (req: Request, res: Response): Promise<Response> => {
 };
 
 const createPost  = async (req: Request, res: Response): Promise<Response> =>{
+	const { error, value } = createPostValidation(req.body)
+    if(error){
+      console.log("error validation:",error.details[0].message)
+      return res.status(404).send({message: error.details[0].message })
+    }
     try {
-        const newPost = await Post.create(req.body);
-        return res.status(200).json(newPost.dataValues)
+        const result = await createPostService(value)
+        return res.status(200).json(result)
     } catch (error) {
         return res.status(501).json(error)       
     }
@@ -73,25 +59,16 @@ const createPost  = async (req: Request, res: Response): Promise<Response> =>{
 
 const editPost  = async (req: Request, res: Response): Promise<Response> =>{
     const {id} = req.params;
-    const {title, desc, photo} = req.body;
+    const { error, value } = updatePostValidation(req.body)
+   
+    if(error){
+      console.log("error validation:",error.details[0].message)
+      return res.status(404).send({message: error.details[0].message })
+    }
+
     try {
-        const getPreviousPost = await Post.findOne({where:{id}})
-       
-        if (photo && getPreviousPost?.photo) {
-          const filePath = getPreviousPost?.photo;
-          if (filePath) {
-              fs.unlink(`public/images/${filePath}`, (err) => {
-                if (err) {
-                    console.error('Error deleting the file:', err);
-                } else {
-                    console.log('File deleted successfully');
-                }
-            });
-           }
-         }
-       
-        const updatePost = await Post.update({title, desc, photo}, { where: { id } });
-        return res.status(200).json(updatePost)
+        const result = await updatePostService(id,value)
+        return res.status(200).json(result)
     } catch (error) {
         return res.status(501).json(error)       
     }
@@ -100,9 +77,8 @@ const editPost  = async (req: Request, res: Response): Promise<Response> =>{
 const deletePost  = async (req: Request, res: Response): Promise<Response> =>{
   const {id} = req.params;
   try {
-        await Post.destroy({where:{id}})
-        await Comment.destroy({where:{postId:id}})
-        return res.status(200).json(true)
+       const result = await deletePostService(id)
+        return res.status(200).json(result)
     } catch (error) {
         return res.status(501).json(error)       
     }
@@ -111,30 +87,18 @@ const deletePost  = async (req: Request, res: Response): Promise<Response> =>{
 const getPost  = async (req: Request, res: Response): Promise<Response> =>{
     const {id} = req.params;
     try {
-
-        const post = await Post.findOne({
-            where: {id},
-            attributes: {
-              include: [[col('id'), '_id']]
-            }
-          });
-
-        return res.status(200).json(post)
+      const result = await getPostService(id)
+      return res.status(200).json(result)
     } catch (error) {
         return res.status(501).json(error)       
     }
 }
 
 const getPostsByUser  = async (req: Request, res: Response): Promise<Response> =>{
-    const {userId} = req.params;
+    const {user_id} = req.params;
     try {
-        const posts = await Post.findAll({
-            where:{userId},
-            attributes: {
-                include: [[col('id'), '_id']]
-              }
-        });
-        return res.status(200).json(posts)
+        const result = await getPostByUserService(user_id)
+        return res.status(200).json(result)
     } catch (error) {
         return res.status(501).json(error)       
     }

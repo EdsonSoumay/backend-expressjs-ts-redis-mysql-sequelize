@@ -1,12 +1,12 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import connection from "../../config/dbConnect";
+import User from "./User";
 
-interface CommentAttributes {
-  id?: number,
+export interface CommentAttributes {
+  id: number,
   comment: string,
-  author: string,
-  postId: bigint,
-  userId: bigint,
+  post_id: bigint,
+  user_id: bigint,
 
   createdAt?: Date,
   updatedAt? : Date
@@ -18,9 +18,8 @@ export interface CommentOutput extends Required<CommentAttributes>{ }
 class Comment extends Model<CommentAttributes, CommentInput> implements CommentAttributes {
   public id!: number;
   public comment!: string;
-  public author!: string;
-  public postId!: bigint;
-  public userId!: bigint;
+  public post_id!: bigint;
+  public user_id!: bigint;
 
   public readonly createdAt!: Date;
   public readonly updatedAt! : Date;
@@ -37,15 +36,11 @@ Comment.init({
     type: DataTypes.STRING,
     allowNull: false,
   },
-  author: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  postId: {
+  post_id: {
     type: DataTypes.BIGINT,
     allowNull: false,
   },
-  userId: {
+  user_id: {
     type: DataTypes.BIGINT,
     allowNull: false,
   }
@@ -53,6 +48,12 @@ Comment.init({
   timestamps: true,
   sequelize: connection,
   underscored: false
+});
+
+
+Comment.belongsTo(User, {
+  foreignKey: 'user_id', // Kolom foreign key
+  as: 'user' // Alias untuk relasi
 });
 
 export default Comment;

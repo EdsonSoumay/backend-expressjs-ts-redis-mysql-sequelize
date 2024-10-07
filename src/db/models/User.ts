@@ -1,8 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import connection from "../../config/dbConnect";
-import Role from "./Role";
 
-interface UserAttributes {
+export interface UserAttributes {
 	id: bigint,
 	username: string,
 	email: string,

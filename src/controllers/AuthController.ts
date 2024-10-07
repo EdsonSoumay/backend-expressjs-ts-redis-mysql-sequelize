@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import { col } from "sequelize";
-
 import User from "../db/models/User";
 import Helper from "../helpers/Helper";
 import PasswordHelper from "../helpers/PasswordHelper";
+import { createSessionValidation, createUserValidation } from "../validations/auth.validation";
 
 const register = async (req: Request, res: Response): Promise<Response> => {
+	const { error, value } = createUserValidation(req.body)
+	if(error){
+		console.log("error validation:",error.details[0].message)
+		return res.status(404).send({message: error.details[0].message })
+	}	
 	try {
-		const { username, email, password } = req.body;
+		const { username, email, password } = value;
 		const hashed = await PasswordHelper.PasswordHashing(password);
 		const existUser = await User.findOne({ where:{ username }})
 		if(existUser){
@@ -22,14 +25,15 @@ const register = async (req: Request, res: Response): Promise<Response> => {
 };
 
 const login = async (req: Request, res: Response): Promise<Response> => {
+	const { error, value } = createSessionValidation(req.body)
+	if(error){
+		console.log("error validation:",error.details[0].message)
+		return res.status(404).send({message: error.details[0].message })
+	}
 	try {
-		const { email, password } = req.body;
-
+		const { email, password } = value;
 		const user = await User.findOne({
 			where: { email },
-			attributes: {
-			  include: [[col('id'), '_id']]
-			}
 		  });
 
         if(!user){
@@ -40,16 +44,18 @@ const login = async (req: Request, res: Response): Promise<Response> => {
 		if (!matched) {
             return res.status(401).json("Wrong credentials!")
 		}
-
 		const dataUser = {
 			id: user.id,
-			_id: user.id,
 			username: user.username,
 			email: user.email,
 		};
 		const token = Helper.GenerateToken(dataUser);
-        return res.cookie("token",token).status(200).json(user)
-
+		const refreshToken = Helper.GenerateRefreshToken(dataUser);
+        return res
+			.cookie("token",token, { httpOnly: true })
+			.cookie("refreshToken", refreshToken, { httpOnly: true })
+			.status(200)
+			.json(user)
 	} catch (err) {
 		return res.status(500).json(err)
 	}
@@ -58,26 +64,33 @@ const login = async (req: Request, res: Response): Promise<Response> => {
 // Function to handle logout
 const logout = async (req: Request, res: Response): Promise<Response> => {
     try {
-       return res.clearCookie('token', { sameSite: 'none', secure: true })
-            .status(200)
-            .send('User logged out successfully!');
+       return res
+	   		 .clearCookie('token', { sameSite: 'none', secure: true })
+        	 .clearCookie('refreshToken', { sameSite: 'none', secure: true })    
+	  		 .status(200)
+         	 .send('User logged out successfully!');
     } catch (err) {
        return res.status(500).json(err);
     }
 };
 
 // Function to handle refetch user
-const refetch = (req: Request, res: Response) => {
+const refetch = async (req: Request, res: Response) => {
 	try {
-		const token = req.cookies.token;
-		const secretKey: string = process.env.JWT_TOKEN as string;
+		const refreshToken = req.cookies.refreshToken;
+		const decoded: any = Helper.ExtractRefreshToken(refreshToken)
+		
+		const user = await User.findOne({where:{id:decoded.id}})
+		if(!user){
+			return res.status(404).json("User not found!")
+		}
 
-		jwt.verify(token, secretKey, {}, async (err, data) => {
-			if (err) {
-				return res.status(404).json(err);
-			}
-			return res.status(200).json(data);
-		});
+		const dataUser = {id: user.id, username: user.username, email: user.email};
+		const newToken = Helper.GenerateToken(dataUser);
+
+		return res
+		.cookie("token",newToken, { httpOnly: true })
+		.status(200).json(dataUser);
 	} catch (error) {
 		return res.status(500).json(error);
 	}

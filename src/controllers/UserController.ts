@@ -1,18 +1,12 @@
 import { Request, Response } from "express";
-import { col } from "sequelize";
-import User from "../db/models/User";
+import { deleteUserService, getUserService, updateUserService } from "../services/user.service";
+import { createUserValidation } from "../validations/auth.validation";
 
 const getUser = async (req: Request, res: Response): Promise<Response> => {
 	try{
 		const { id } = req.params;
-		const existUser = await User.findOne({
-			where: { id },
-			attributes: {
-			  include: [[col('id'), '_id']]
-			}
-		  });
-		
-    	return res.status(200).json(existUser)
+		const result =  await getUserService(id)
+    	return res.status(200).json(result)
     }
     catch(err){
         return res.status(500).json(err)
@@ -21,13 +15,15 @@ const getUser = async (req: Request, res: Response): Promise<Response> => {
 
 const updateUser = async (req: Request, res: Response): Promise<Response> => {
 	try{
+		const { error, value } = createUserValidation(req.body)
+		if(error){
+			console.log("error validation:",error.details[0].message)
+			return res.status(404).send({message: error.details[0].message })
+		}
+		
 		const { id } = req.params;
-		const { username, email, password } = req.body;
-		const user = await User.update({
-			username, email
-		  }, { where: { id } });
-
-       return res.status(200).json(user)
+		const result = updateUserService(id, value)
+       	return res.status(200).json(result)
     }
     catch(err){
         return res.status(500).json(err)
@@ -37,8 +33,8 @@ const updateUser = async (req: Request, res: Response): Promise<Response> => {
 const deleteUser = async (req: Request, res: Response): Promise<Response> => {
 	try{
 		const { id } = req.params;
-		const user = await User.destroy({ where: { id } });
-   	    return res.status(200).json(user)
+		const result = await deleteUserService(id)
+   	    return res.status(200).json(result)
     }
     catch(err){
         return res.status(500).json(err)
