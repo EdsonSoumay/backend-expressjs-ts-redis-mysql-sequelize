@@ -4,6 +4,8 @@ import connection from "../../config/dbConnect";
 export interface UserAttributes {
 	id: bigint,
 	username: string,
+	first_name: string,
+	last_name: string,
 	email: string,
 	password: string,
   
@@ -17,6 +19,8 @@ export interface UserAttributes {
   class User extends Model<UserAttributes, UserInput> implements UserAttributes {
 	public id!: bigint;
 	public username!: string;
+	public first_name!: string;
+	public last_name!: string;
 	public email!: string;
 	public password!: string;
 
@@ -35,6 +39,14 @@ User.init({
 	username: {
 		type: DataTypes.STRING,
 		allowNull: false
+	},
+	first_name: {
+		type: DataTypes.STRING,
+		allowNull: false
+	},
+	last_name: {
+		type: DataTypes.STRING,
+		allowNull: true
 	},
 	email: {
 		type: DataTypes.STRING,

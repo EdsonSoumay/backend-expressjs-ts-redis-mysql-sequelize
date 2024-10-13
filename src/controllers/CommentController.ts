@@ -10,33 +10,34 @@ const createComment = async (req: Request, res: Response): Promise<Response> => 
     }
 
     try {
-        const newComment = await createCommentService(value);
-        return res.status(200).json(newComment);
-    } catch (error) {
-        return res.status(500).json(error);
+        await createCommentService(value);
+        return res.status(200).json({ message: 'successfully create comment'});
+    } catch (error:any) {
+        return res.status(500).send({ error: error.message });
     }
 };
 
 const editComment = async (req: Request, res: Response): Promise<Response> => {
     const { id } = req.params;
     const { comment } = req.body;
-
     try {
         const result = await editCommentService(id, comment);
-        return res.status(200).json(result);
-    } catch (error) {
-        return res.status(500).json(error);
+        return res.status(200).json({ message: 'successfully edit comment'});
+    } catch (error:any) {
+        return res.status(500).send({ error: error.message });
     }
 };
 
 const deleteComment = async (req: Request, res: Response): Promise<Response> => {
     const { id } = req.params;
-
     try {
         const result = await deleteCommentService(id);
-        return res.status(200).json(result);
-    } catch (error) {
-        return res.status(500).json(error);
+        if(result === 0){
+            return res.status(404).send({ message: 'comment does not exist'});
+        }
+        return res.status(200).json({ message: 'successfully get comments'});
+    } catch (error:any) {
+        return res.status(500).send({ error: error.message });
     }
 };
 
@@ -45,9 +46,9 @@ const getPostComments = async (req: Request, res: Response): Promise<Response> =
 
     try {
         const comments = await getPostCommentsService(post_id);
-        return res.status(200).json(comments);
-    } catch (error) {
-        return res.status(500).json(error);
+        return res.status(200).json({ message: 'successfully get comments', data: comments});
+    } catch (error:any) {
+        return res.status(500).send({ error: error.message });
     }
 };
 

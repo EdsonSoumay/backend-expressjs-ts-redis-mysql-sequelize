@@ -1,7 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import connection from "../../config/dbConnect";
 
-interface CategoryAttributes {
+export interface CategoryAttributes {
   id?: number,
   category_description:string,
   createdAt?: Date,

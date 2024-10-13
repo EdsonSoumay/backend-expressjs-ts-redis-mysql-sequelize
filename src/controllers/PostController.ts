@@ -20,8 +20,8 @@ const getPosts = async (req: Request, res: Response): Promise<Response> => {
       if (cachedData) {
         const data = JSON.parse(cachedData)
         console.log("redis data:", data);
-        // Data ditemukan di Redis, kembalikan data dari cache
-        return res.status(200).json(data);
+        // kembalikan data dari cache redis
+        return res.status(200).send({message: 'succesfully get posts', data});
       }
     }
 
@@ -36,10 +36,9 @@ const getPosts = async (req: Request, res: Response): Promise<Response> => {
     }
 
     // Kembalikan data
-    return res.status(200).json(posts);
-  } catch (err) {
-    console.log("error:", err);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(200).send({message: 'succesfully get posts', data: posts});
+  } catch (error:any) {
+    return res.status(500).send({message: error.message})
   }
 };
 
@@ -51,9 +50,9 @@ const createPost  = async (req: Request, res: Response): Promise<Response> =>{
     }
     try {
         const result = await createPostService(value)
-        return res.status(200).json(result)
-    } catch (error) {
-        return res.status(501).json(error)       
+        return res.status(200).send({message: 'succesfully create post', data: result})
+    } catch (error:any) {
+        return res.status(500).send({message: error.message})
     }
 }
 
@@ -68,19 +67,19 @@ const editPost  = async (req: Request, res: Response): Promise<Response> =>{
 
     try {
         const result = await updatePostService(id,value)
-        return res.status(200).json(result)
-    } catch (error) {
-        return res.status(501).json(error)       
+        return res.status(200).send({message: 'successfully update post', data: result})
+    } catch (error:any) {
+        return res.status(500).send({message: error.message})
     }
 }
 
 const deletePost  = async (req: Request, res: Response): Promise<Response> =>{
   const {id} = req.params;
   try {
-       const result = await deletePostService(id)
-        return res.status(200).json(result)
-    } catch (error) {
-        return res.status(501).json(error)       
+       await deletePostService(id)
+       return res.status(200).send({message: 'successfully delete post'})
+    } catch (error:any) {
+        return res.status(500).send({message: error.message})
     }
 }
 
@@ -88,9 +87,13 @@ const getPost  = async (req: Request, res: Response): Promise<Response> =>{
     const {id} = req.params;
     try {
       const result = await getPostService(id)
-      return res.status(200).json(result)
-    } catch (error) {
-        return res.status(501).json(error)       
+      if(!result){
+       return res.status(200).send({message: 'post does not exist'})
+      }
+
+      return res.status(200).send({message: 'successfully get post', data:result})
+    } catch (error:any) {
+        return res.status(500).send({message: error.message})
     }
 }
 
@@ -98,9 +101,13 @@ const getPostsByUser  = async (req: Request, res: Response): Promise<Response> =
     const {user_id} = req.params;
     try {
         const result = await getPostByUserService(user_id)
-        return res.status(200).json(result)
-    } catch (error) {
-        return res.status(501).json(error)       
+        if(!result){
+          return res.status(200).send({message: 'post does not exist'})
+         }
+
+      return res.status(200).send({message: 'successfully get post by user', data:result})
+    } catch (error:any) {
+        return res.status(500).send({message: error.message})
     }
 }
 

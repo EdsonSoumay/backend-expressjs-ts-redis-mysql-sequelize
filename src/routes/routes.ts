@@ -35,5 +35,5 @@ export const routes = (app: Application)=>{
  app.delete("/api/category/:id/", Authorization.verifyToken, CategoryController.deleteCategory);
  app.get("/api/category/", Authorization.verifyToken, CategoryController.getCategories);
 
- app.post("/api/upload",  HandleFile.fileUpload(), FileController.handleFileUpload)
+ app.post("/api/upload", Authorization.verifyToken, HandleFile.fileUpload(), FileController.handleFileUpload)
 }

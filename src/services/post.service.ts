@@ -1,7 +1,6 @@
 import { Op } from "sequelize";
 import Post, { PostAttributes } from "../db/models/post";
 import User from "../db/models/User";
-import fs from 'fs'
 import Comment from "../db/models/comment";
 import { deleteImage, removePreviousImage } from "../helpers/RemoveFileHelper";
 import Category from "../db/models/category";
@@ -48,10 +47,10 @@ const updatePostService = async (id: string, value:PostAttributes) => {
 }
 
 const deletePostService = async (id: string) => {
-  const findPOst = await Post.findOne({where:{id}})
+  const findPost = await Post.findOne({where:{id}})
   await Post.destroy({where:{id}})
   await Comment.destroy({where:{post_id:id}})
-  deleteImage(findPOst?.photo)
+  deleteImage(findPost?.photo)
   return true;
 }
 
