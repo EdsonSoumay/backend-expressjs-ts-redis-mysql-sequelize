@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { createPostValidation, updatePostValidation } from "../validations/post.validation";
 import { createPostService, deletePostService, getPostByUserService, getPostService, getPostsService, updatePostService } from "../services/post.service";
+import { SocketEmitHelper } from "../helpers/SocketHelper";
 
 const getPosts = async (req: Request, res: Response): Promise<Response> => {
   const { search } = req.query;
@@ -49,10 +50,12 @@ const createPost  = async (req: Request, res: Response): Promise<Response> =>{
       return res.status(404).send({message: error.details[0].message })
     }
     try {
-        const result = await createPostService(value)
-        return res.status(200).send({message: 'succesfully create post', data: result})
+      await createPostService(value)
+      const posts = await getPostsService('')
+      SocketEmitHelper('all-posts', posts)
+      return res.status(200).send({message: 'succesfully create post'})
     } catch (error:any) {
-        return res.status(500).send({message: error.message})
+      return res.status(500).send({message: error.message})
     }
 }
 
@@ -66,8 +69,10 @@ const editPost  = async (req: Request, res: Response): Promise<Response> =>{
     }
 
     try {
-        const result = await updatePostService(id,value)
-        return res.status(200).send({message: 'successfully update post', data: result})
+        await updatePostService(id,value)
+        const posts = await getPostsService('')
+        SocketEmitHelper('all-posts', posts)
+        return res.status(200).send({message: 'successfully update post'})
     } catch (error:any) {
         return res.status(500).send({message: error.message})
     }
@@ -77,6 +82,8 @@ const deletePost  = async (req: Request, res: Response): Promise<Response> =>{
   const {id} = req.params;
   try {
        await deletePostService(id)
+       const posts = await getPostsService('')
+       SocketEmitHelper('all-posts', posts)
        return res.status(200).send({message: 'successfully delete post'})
     } catch (error:any) {
         return res.status(500).send({message: error.message})

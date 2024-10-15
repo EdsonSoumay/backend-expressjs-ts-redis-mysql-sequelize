@@ -1,6 +1,6 @@
 import supertest from 'supertest';
 import sequelize from './setupTests';
-import createServer from '../helpers/server';
+import createServer from '../infrastructures/server';
 import User from '../db/models/User';
 
 const app = createServer();

@@ -1,6 +1,6 @@
 import { createClient, RedisClientType } from 'redis';
 
-const RedisSetUp = () =>{
+const redis = () =>{
     let redisClient: RedisClientType | null = null; // Initialize as null
     let isRedisConnected = false; // To track Redis connection status
     let retriesConnectToRedis = 0;
@@ -75,4 +75,4 @@ const RedisSetUp = () =>{
     return redisClient;
 }
 
-export default RedisSetUp ;
+export default redis ;
