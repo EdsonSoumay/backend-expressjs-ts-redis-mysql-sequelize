@@ -4,17 +4,17 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
-import { Server } from "socket.io";
 import { routes } from "../routes/routes";
-import redis from "../infrastructures/redis";
 import Authorization from "../middleware/Authorization";
+import { createSocketServer } from "./socket"; // Import createSocketServer
+import CreateRedis from "./redis";
 
-let io: Server; // Declare a variable for io
+let io: any; // Declare io globally
 
 const createServer = () => {
     dotenv.config();
     const app = express();
-    app.locals.redisClient = redis();
+    app.locals.redisClient = CreateRedis();
     app.use(morgan('dev'));
     app.use(express.json());
 
@@ -37,32 +37,13 @@ const createServer = () => {
     // Initialize routes
     routes(app);
 
-    // Create HTTP server and initialize socket.io
+    // Create HTTP server
     const httpServer = require('http').createServer(app);
-    io = new Server(httpServer, {
-        cors: {
-            origin: "http://localhost:5173", // Same as above
-            methods: ["GET", "POST"],
-            credentials: true, // Allow credentials
-        },
-    }); // Initialize io with CORS settings
 
-    // Socket.io connection handling
-    io.on("connection", (socket: any) => {
-        console.log(`New client connected: ${socket.id}`);
-
-        socket.on("message", (data: any) => {
-            console.log("Message received:", data);
-            socket.emit("response", { message: "Message received" });
-        });
-
-        socket.on("disconnect", () => {
-            console.log(`Client disconnected: ${socket.id}`);
-        });
-    });
+    // Initialize Socket.IO using socket.ts
+    io = createSocketServer(httpServer);
 
     return { app, httpServer, io }; // Return app, httpServer, and io
 }
 
-export { createServer }; // Export only createServer
-export { io }; // Export io separately
+export { createServer, io }; // Export both createServer and io

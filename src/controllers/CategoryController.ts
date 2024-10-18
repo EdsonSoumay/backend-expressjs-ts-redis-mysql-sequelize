@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { createCategoryValidation, updateCategoryValidation } from "../validations/category.validation";
 import { createCategoryService, deleteCategoryService, getCategoriesService, editCategoryService } from "../services/category.service";
+import { GeneralSocketEmitHelper } from "../helpers/SocketHelper";
 
 // Create a new category
 const createCategory = async (req: Request, res: Response): Promise<Response> => {
@@ -13,6 +14,10 @@ const createCategory = async (req: Request, res: Response): Promise<Response> =>
   try {
     const { category_description} = value;
     await createCategoryService(category_description)
+    
+    const result = await getCategoriesService()
+    GeneralSocketEmitHelper('all-categories', result)
+
     return res.status(200).send({ message: 'successfully get category'});
   } catch (error:any) {
     return res.status(500).send({ error: error.message });
@@ -31,6 +36,10 @@ const editCategory = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { category_description } = value;
     await editCategoryService(category_description, id)
+
+    const result = await getCategoriesService()
+    GeneralSocketEmitHelper('all-categories', result)
+
     return res.status(200).send({ message: 'successfully edit category'});
   } catch (error:any) {
     return res.status(500).send({ error: error.message });
@@ -43,6 +52,10 @@ const deleteCategory = async (req: Request, res: Response): Promise<Response> =>
   
   try {
     await deleteCategoryService(id)
+
+    const result = await getCategoriesService()
+    GeneralSocketEmitHelper('all-categories', result)
+    
     return res.status(200).send({ message: 'successfully delete category'});
   } catch (error:any) {
     return res.status(500).send({ error: error.message });
@@ -53,6 +66,7 @@ const deleteCategory = async (req: Request, res: Response): Promise<Response> =>
 const getCategories = async (req: Request, res: Response): Promise<Response> => {
   try {
     const result = await getCategoriesService()
+
     return res.status(200).send({ message: 'successfully get categories', data: result});
   } catch (error:any) {
     return res.status(500).send({ error: error.message });

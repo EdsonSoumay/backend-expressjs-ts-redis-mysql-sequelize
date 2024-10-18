@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../db/models/User";
-import Helper from "../helpers/Helper";
+import Helper from "../helpers/TokenHelper";
 import PasswordHelper from "../helpers/PasswordHelper";
 import { createSessionValidation, createUserValidation } from "../validations/auth.validation";
 

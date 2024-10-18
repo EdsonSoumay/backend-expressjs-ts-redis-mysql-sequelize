@@ -1,7 +1,11 @@
 import { io } from "../infrastructures/server"
 
-const SocketEmitHelper = (title: string, data: Object) => {
-    return io.emit(`${title}`, data);
+const GeneralSocketEmitHelper = (event: string, data: Object) => {
+    return io.emit(`${event}`, data);
 }
 
-export {SocketEmitHelper}
+const RoomSocketEmitHelper = (roomName: string, event: string, data: Object) => {
+    return io.to(`${roomName}`).emit(`${event}`, data);
+}
+
+export {GeneralSocketEmitHelper, RoomSocketEmitHelper}

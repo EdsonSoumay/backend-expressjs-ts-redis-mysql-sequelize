@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { createPostValidation, updatePostValidation } from "../validations/post.validation";
 import { createPostService, deletePostService, getPostByUserService, getPostService, getPostsService, updatePostService } from "../services/post.service";
-import { SocketEmitHelper } from "../helpers/SocketHelper";
+import { GeneralSocketEmitHelper, RoomSocketEmitHelper } from "../helpers/SocketHelper";
 
 const getPosts = async (req: Request, res: Response): Promise<Response> => {
   const { search } = req.query;
@@ -44,6 +44,7 @@ const getPosts = async (req: Request, res: Response): Promise<Response> => {
 };
 
 const createPost  = async (req: Request, res: Response): Promise<Response> =>{
+  const userId = req?.user_id;
 	const { error, value } = createPostValidation(req.body)
     if(error){
       console.log("error validation:",error.details[0].message)
@@ -51,8 +52,14 @@ const createPost  = async (req: Request, res: Response): Promise<Response> =>{
     }
     try {
       await createPostService(value)
-      const posts = await getPostsService('')
-      SocketEmitHelper('all-posts', posts)
+      const result = await getPostsService('')
+      GeneralSocketEmitHelper('all-posts', result)
+   
+      if (userId) {
+        const resultByUser = await getPostByUserService(userId);
+        RoomSocketEmitHelper(`userId-${userId}`, `${userId}-all-posts`, resultByUser);
+      }
+
       return res.status(200).send({message: 'succesfully create post'})
     } catch (error:any) {
       return res.status(500).send({message: error.message})
@@ -61,8 +68,9 @@ const createPost  = async (req: Request, res: Response): Promise<Response> =>{
 
 const editPost  = async (req: Request, res: Response): Promise<Response> =>{
     const {id} = req.params;
+    const userId = req?.user_id;
+
     const { error, value } = updatePostValidation(req.body)
-   
     if(error){
       console.log("error validation:",error.details[0].message)
       return res.status(404).send({message: error.details[0].message })
@@ -70,8 +78,14 @@ const editPost  = async (req: Request, res: Response): Promise<Response> =>{
 
     try {
         await updatePostService(id,value)
-        const posts = await getPostsService('')
-        SocketEmitHelper('all-posts', posts)
+
+        const result = await getPostsService('')
+        GeneralSocketEmitHelper('all-posts', result)
+        
+        if (userId) {
+          const resultByUser = await getPostByUserService(userId);
+          RoomSocketEmitHelper(`userId-${userId}`, `${userId}-all-posts`, resultByUser);
+        }
         return res.status(200).send({message: 'successfully update post'})
     } catch (error:any) {
         return res.status(500).send({message: error.message})
@@ -79,15 +93,24 @@ const editPost  = async (req: Request, res: Response): Promise<Response> =>{
 }
 
 const deletePost  = async (req: Request, res: Response): Promise<Response> =>{
-  const {id} = req.params;
-  try {
-       await deletePostService(id)
-       const posts = await getPostsService('')
-       SocketEmitHelper('all-posts', posts)
-       return res.status(200).send({message: 'successfully delete post'})
-    } catch (error:any) {
-        return res.status(500).send({message: error.message})
-    }
+    const {id} = req.params;
+    const userId = req?.user_id;
+
+    try {
+        await deletePostService(id)
+
+        const result = await getPostsService('')
+        GeneralSocketEmitHelper('all-posts', result)
+        
+        if (userId) {
+          const resultByUser = await getPostByUserService(userId);
+          RoomSocketEmitHelper(`userId-${userId}`, `${userId}-all-posts`, resultByUser);
+        }
+
+        return res.status(200).send({message: 'successfully delete post'})
+      } catch (error:any) {
+          return res.status(500).send({message: error.message})
+      }
 }
 
 const getPost  = async (req: Request, res: Response): Promise<Response> =>{
