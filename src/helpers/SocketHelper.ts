@@ -1,11 +1,20 @@
-import { io } from "../infrastructures/server"
+import { io } from "../infrastructures/server";
 
 const GeneralSocketEmitHelper = (event: string, data: Object) => {
-    return io.emit(`${event}`, data);
+    try {
+        io.emit(`${event}`, data);
+    } catch (error) {
+        console.error(`Error emitting event ${event}:`, error);
+        // Optional: handle error further or rethrow it
+    }
 }
 
 const RoomSocketEmitHelper = (roomName: string, event: string, data: Object) => {
-    return io.to(`${roomName}`).emit(`${event}`, data);
+    try {
+        io.to(`${roomName}`).emit(`${event}`, data);
+    } catch (error) {
+        console.error(`Error emitting event ${event} to room ${roomName}:`, error);
+    }
 }
 
-export {GeneralSocketEmitHelper, RoomSocketEmitHelper}
+export { GeneralSocketEmitHelper, RoomSocketEmitHelper };

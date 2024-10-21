@@ -16,7 +16,7 @@ const deleteCommentService = async (id: string) => {
     return result;
 };
 
-const getPostCommentsService = async (post_id: string) => {
+const getPostCommentsService = async (post_id: any) => {
     const comments = await Comment.findAll({
         where: { post_id },
         include: [{
@@ -27,4 +27,11 @@ const getPostCommentsService = async (post_id: string) => {
     return comments;
 };
 
-export { createCommentService, editCommentService, deleteCommentService, getPostCommentsService};
+const getPostCommentService = async (id: string) => {
+    const comment = await Comment.findOne({
+        where: { id },
+    });
+    return comment;
+};
+
+export { createCommentService, editCommentService, deleteCommentService, getPostCommentsService, getPostCommentService};

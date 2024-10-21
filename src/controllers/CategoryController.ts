@@ -5,7 +5,7 @@ import { GeneralSocketEmitHelper } from "../helpers/SocketHelper";
 
 // Create a new category
 const createCategory = async (req: Request, res: Response): Promise<Response> => {
-	const { error, value } = createCategoryValidation(req.body)
+  const { error, value } = createCategoryValidation(req.body)
 	if(error){
 		console.log("error validation:",error.details[0].message)
 		return res.status(404).send({message: error.details[0].message })

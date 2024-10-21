@@ -1,7 +1,7 @@
 import Category from "../db/models/category";
 
 const createCategoryService = async (category_description: any) => {
-    const result = await Category.create(category_description);
+    const result = await Category.create({category_description});
     return result;
 };
 
