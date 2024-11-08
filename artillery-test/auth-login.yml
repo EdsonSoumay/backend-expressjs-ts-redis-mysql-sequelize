@@ -1,0 +1,14 @@
+config:
+  target: 'http://localhost:7000'  # URL dan port aplikasi
+  phases:
+    - duration: 60                 # Durasi uji dalam detik
+      arrivalRate: 5               # Permintaan per detik
+
+scenarios:
+  - flow:
+      # Test login endpoint
+      - post:
+          url: "/api/auth/login"
+          json:
+            username: "user"    # Data login yang dikirim
+            password: "1234"

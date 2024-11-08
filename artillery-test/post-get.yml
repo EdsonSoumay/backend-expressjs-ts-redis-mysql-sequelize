@@ -1,0 +1,16 @@
+config:
+  target: "http://localhost:7000"
+  phases:
+    - duration: 10
+      arrivalRate: 2
+  defaults:
+    headers:
+      Cookie: "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDAsInVzZXJuYW1lIjoidXNlciIsImlhdCI6MTczMTA0MDk5MiwiZXhwIjoxNzMxMTI3MzkyfQ.C1W4frvMJkK0KpaBJ5UNY89YI-1FI8azbiGjhYaPqVQ"
+      Content-Type: "application/json"
+
+scenarios:
+  - flow:
+      - get:
+          url: "/api/posts?search="  # Replace "example" with the search term you want to test
+          expect:
+            statusCode: 200

@@ -1,0 +1,33 @@
+config:
+  target: "http://localhost:7000"
+  phases:
+    - duration: 3
+      arrivalRate: 2
+  defaults:
+    headers:
+      Cookie: "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDAsInVzZXJuYW1lIjoidXNlciIsImlhdCI6MTczMTA0MDk5MiwiZXhwIjoxNzMxMTI3MzkyfQ.C1W4frvMJkK0KpaBJ5UNY89YI-1FI8azbiGjhYaPqVQ"
+      Content-Type: "application/json"
+
+scenarios:
+  - flow:
+      # Step 1: Create a new post
+      - post:
+          url: "/api/posts/create"
+          json:
+            title: "Redis Test Post"
+            desc: "Testing Redis cache clearance after post creation."
+            user_id: 39
+            category_id: 2
+            photo: null
+          capture:
+            json: "$.id"
+            as: postId
+
+      # Add a brief delay to allow async processes to complete
+      - think: 2
+
+      # Step 2: Verify Redis cache by fetching posts after cache clearance
+      - get:
+          url: "/api/posts"
+          expect:
+            statusCode: 200
