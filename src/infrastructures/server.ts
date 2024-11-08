@@ -21,7 +21,7 @@ const createServer = () => {
     // CORS configuration
     const corsOptions = {
         credentials: true,
-        origin: "http://localhost:5173", // Change to your frontend URL
+        origin: process.env.URL_FRONT_END, // Change to your frontend URL
     };
 
     app.use(cors(corsOptions)); // Use CORS middleware for Express
