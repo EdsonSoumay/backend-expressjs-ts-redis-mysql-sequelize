@@ -36,7 +36,7 @@ const CreateRedis = () =>{
     
         // redisClient = createClient();
         redisClient = createClient({
-            password: '123456', // Set the Redis password here
+            password:  process.env.REDIS_PASSWORD, // Set the Redis password here
         });
 
         redisClient.on('error', handleRedisError);
