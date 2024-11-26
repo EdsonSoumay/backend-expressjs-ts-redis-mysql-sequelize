@@ -22,7 +22,7 @@ export const routes = (app: Application)=>{
  app.put("/api/posts/:id", Authorization.verifyToken, PostController.editPost);
  app.delete("/api/posts/:id", Authorization.verifyToken, PostController.deletePost);
  app.get("/api/posts/:id", Authorization.verifyToken, PostController.getPost);
- app.get("/api/posts", Authorization.verifyToken, PostController.getPosts);
+ app.get("/api/posts", PostController.getPosts);
  app.get("/api/posts/user/:user_id", Authorization.verifyToken, PostController.getPostsByUser);  
 
  app.post("/api/comments/create/", Authorization.verifyToken, CommentController.createComment);
